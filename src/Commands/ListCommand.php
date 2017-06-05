@@ -56,11 +56,17 @@ class ListCommand extends Command
         if ($buttons && count($buttons) < $maxInColumn) {
             call_user_func_array([$reply_markup, 'row'], $buttons);
         }
-        
-        $this->telegram->sendMessage([
-            'chat_id' => $telegram_id,
-            'text' => 'List of totp',
-            'reply_markup' => $reply_markup
-        ]);
+        if ($row) {
+            $this->telegram->sendMessage([
+                'chat_id' => $telegram_id,
+                'text' => 'List of totp',
+                'reply_markup' => $reply_markup
+            ]);
+        } else {
+            $this->telegram->sendMessage([
+                'chat_id' => $telegram_id,
+                'text' => 'You don\'t has any entry, please, first import from Authy xml file or add one by one entry'
+            ]);
+        }
    }
 }
