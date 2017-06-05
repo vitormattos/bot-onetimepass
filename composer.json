@@ -1,0 +1,19 @@
+{
+	"require" : {
+		"php" : ">=7",
+		"spomky-labs/otphp" : "^8.3",
+		"vlucas/phpdotenv" : "^2.4",
+		"robmorgan/phinx" : "^0.8.0",
+		"irazasyed/telegram-bot-sdk" : "dev-master",
+		"aura/sql" : "^2.5"
+	},
+	"autoload" : {
+		"psr-4" : {
+			"Commands\\" : "src/Commands/",
+			"Base\\" : "src/Base/"
+		}
+	},
+    "scripts" : {
+        "post-update-cmd" : "vendor/bin/phinx migrate"
+    }
+}
