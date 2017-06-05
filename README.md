@@ -4,7 +4,7 @@ Yet, just another bot to generate totp
 To use the bot access [OneTimePassBot](https://t.me/OneTimePassBot) and be happy
 
 ## If dont believe in my server
-Fork the project, rename `.env.dist` to `.env`, set the necessary values to environments and be happy with your own server and yoyr own bot
+Fork the project, rename `.env.dist` to `.env`, set the necessary values to environments and be happy with your own server and your own bot
 
 
 ## Contributing
