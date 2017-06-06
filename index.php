@@ -44,7 +44,7 @@ if ($update->has('channel_post') ||
     error_log(file_get_contents('php://input'));
     return;
 }
-foreach(['CallbackQuery', 'Command', 'Document'] as $method) {
+foreach(['CallbackQuery', 'Command', 'Document', 'Message'] as $method) {
     call_user_func([$telegram, 'process'.$method], $update);
     if($telegram->getLastResponse()) {
         break;

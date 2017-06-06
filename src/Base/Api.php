@@ -5,6 +5,7 @@ use Telegram\Bot\Keyboard\Keyboard;
 use Symfony\Component\Config\Util\XmlUtils;
 use Telegram\Bot\Exceptions\TelegramSDKException;
 use Commands\ImportAuthyCommand;
+use Commands\ListCommand;
 
 class Api extends \Telegram\Bot\Api
 {
@@ -96,18 +97,14 @@ class Api extends \Telegram\Bot\Api
     
     public function processDocument(\Telegram\Bot\Objects\Update $update) {
         $message = $update->getMessage();
+        $chat_id = $message->getChat()->getId();
         if($message->has('photo')) {
             $file_id = $message->getPhoto()->last()['file_id'];
         } elseif($message->has('document')) {
             $file_id = $message->getDocument()->getFileId();
         } else {
-            $this->sendMessage([
-                'chat_id' => $chat_id,
-                'text' => 'Invalid file format, accept only picture, jpg or xml file.'
-            ]);
             return;
         }
-        $chat_id = $message->getChat()->getId();
 
         $fileInfo = $this->getFile([
             'file_id' => $file_id
@@ -143,6 +140,42 @@ class Api extends \Telegram\Bot\Api
                 ]);
                 $this->getCommandBus()->execute('importauthy', [], $update);
                 return;
+            }
+        } else {
+            $this->sendMessage([
+                'chat_id' => $chat_id,
+                'text' => 'Invalid file format, accept only picture, jpg or xml file.'
+            ]);
+        }
+    }
+    
+    public function processMessage(\Telegram\Bot\Objects\Update $update)
+    {
+        $message = $update->getMessage();
+
+        if ($message !== null && $message->has('text')) {
+            $db = \Base\DB::getInstance();
+            $sth = $db->prepare(
+                'SELECT original, service, label, secret '.
+                'FROM keys '.
+                'WHERE telegram_id = :telegram_id '.
+                'AND deleted = false '.
+                'AND (lower(service) LIKE :text OR lower(label) LIKE :text)'.
+                'ORDER BY service, label'
+                );
+            $telegram_id = $update->getMessage()->getFrom()->getId();
+            $ok = $sth->execute([
+                'telegram_id' => $telegram_id,
+                'text' => '%'.strtolower($message->getText()).'%'
+            ]);
+            if (!$ok) return;
+            $reply_markup = ListCommand::generateButtonsFromSth($sth);
+            if ($reply_markup->get('inline_keyboard')) {
+                $this->sendMessage([
+                    'chat_id' => $telegram_id,
+                    'text' => 'List of totp',
+                    'reply_markup' => $reply_markup
+                ]);
             }
         }
     }

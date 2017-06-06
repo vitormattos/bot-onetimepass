@@ -57,17 +57,21 @@ class ListCommand extends Command
            'WHERE telegram_id = :telegram_id AND deleted = false '.
            'ORDER BY service, label'
        );
-       $sth->execute([
+       $ok = $sth->execute([
            'telegram_id' => $telegram_id
        ]);
-       
+       if ($ok)
+        return self::generateButtonsFromSth($sth, $delete, $maxInColumn);
+   }
+   public static function generateButtonsFromSth(\PDOStatement $sth, bool $delete = false, int $maxInColumn = 1)
+   {
        $reply_markup = Keyboard::make();
        $reply_markup->inline();
        $buttons = [];
        while ($row = $sth->fetch()) {
            $label = $row['label']
-               ? "\n".$row['label']
-               : '';
+           ? "\n".$row['label']
+           : '';
            if ($delete) {
                $buttons[] = Keyboard::inlineButton([
                    'text' => ($delete?Emojify::text(':no_entry:'):'').$row['service'].$label,
