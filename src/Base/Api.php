@@ -173,8 +173,10 @@ class Api extends \Telegram\Bot\Api
             if ($reply_markup->get('inline_keyboard')) {
                 $this->sendMessage([
                     'chat_id' => $telegram_id,
-                    'text' => 'List of totp',
-                    'reply_markup' => $reply_markup
+                    'text' => 'List of totp to '.
+                        '.<strong>'.$message->getText().'</strong>',
+                    'reply_markup' => $reply_markup,
+                    'parse_mode' => 'html'
                 ]);
             }
         }
