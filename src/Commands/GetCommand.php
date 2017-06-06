@@ -45,6 +45,16 @@ class GetCommand extends Command
                 'callback_data' => '/remaining '.$source
             ])
         );
+        if($token['service']) {
+            $this->telegram->sendMessage([
+                'chat_id' => $telegram_id,
+                'text' => $token['service'].
+                    ($token['label']
+                        ?':'.$token['service']
+                        :''
+                    ),
+            ]);
+        }
         $this->telegram->sendMessage([
             'chat_id' => $telegram_id,
             'text' => $token['token'],
@@ -59,7 +69,7 @@ class GetCommand extends Command
        if ($source) {
            $db = \Base\DB::getInstance();
            $sth = $db->prepare(
-               'SELECT secret '.
+               'SELECT service, label, secret '.
                ' FROM keys '.
                'WHERE telegram_id = :telegram_id '.
                'AND service = :service '.
@@ -77,6 +87,10 @@ class GetCommand extends Command
        } else {
            $totp = new TOTP();
        }
+       if(!$row) {
+           $row['service'] =  null;
+           $row['label'] =  null;
+       }
 
        $timestamp = time();
        $float = $timestamp  / $totp->getPeriod();
@@ -84,7 +98,9 @@ class GetCommand extends Command
        $remainingSeconds =  $totp->getPeriod() - round(($totp->getPeriod()*$percent)/100);
        return [
            'remaining' => $remainingSeconds,
-           'token' => $totp->at($timestamp)
+           'token' => $totp->at($timestamp),
+           'service' => $row['service'],
+           'label' => $row['label']
        ];
    }
 }
