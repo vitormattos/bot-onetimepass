@@ -50,7 +50,7 @@ class GetCommand extends Command
                 'chat_id' => $telegram_id,
                 'text' => $token['service'].
                     ($token['label']
-                        ?':'.$token['service']
+                        ?':'.$token['label']
                         :''
                     ),
             ]);
