@@ -54,12 +54,13 @@ class ListCommand extends Command
        $sth = $db->prepare(
            'SELECT original, service, label, secret '.
            'FROM keys '.
-           'WHERE telegram_id = :telegram_id AND deleted = false'.
+           'WHERE telegram_id = :telegram_id AND deleted = false '.
            'ORDER BY service, label'
        );
        $sth->execute([
            'telegram_id' => $telegram_id
        ]);
+       $info = $sth->errorInfo();
        
        $reply_markup = Keyboard::make();
        $reply_markup->inline();
