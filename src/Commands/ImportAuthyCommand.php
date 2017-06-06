@@ -61,7 +61,7 @@ class ImportAuthyCommand extends Command
         foreach ($json as $source) {
             $tmp = explode(':', $source->originalName);
             $values['service'] = $tmp[0];
-            $values['label'] = $tmp[1];
+            $values['label'] = isset($tmp[1])?$tmp[1]:'';
             $values['secret'] = $source->decryptedSecret;
             $sth = $db->prepare(
                 'INSERT INTO keys (telegram_id, service, label, secret) '.

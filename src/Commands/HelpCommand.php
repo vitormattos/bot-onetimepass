@@ -4,6 +4,7 @@ namespace Commands;
 
 use Telegram\Bot\Commands\Command;
 use Base\UserMeta;
+use Telegram\Bot\Helpers\Emojify;
 
 /**
  * Class HelpCommand.
@@ -43,7 +44,11 @@ class HelpCommand extends Command
             unset($commands['delete'], $commands['list']);
         }
 
-        $text = '';
+        $text = "To create new entry, you has 4 options:\n".
+            Emojify::text(':one:')." - Use the command \importauthy to import a xml of app Authy `com.authy.storage.tokens.authenticator.xml`\n".
+            Emojify::text(':two:')." - Upload directly to the bot a xml of app Authy `com.authy.storage.tokens.authenticator.xml`\n".
+            Emojify::text(':three:')." - Upload directly to the bot a picture with qrcode containing a uri of totp service\n".
+            Emojify::text(':four:')." - Use the command `\adduri <uri>` to input manualy a new entry\n\n";
         foreach ($commands as $name => $handler) {
             if (in_array($name, ['remaining', 'start', 'get'])) {
                 continue;

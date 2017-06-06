@@ -96,13 +96,17 @@ class Api extends \Telegram\Bot\Api
     
     public function processDocument(\Telegram\Bot\Objects\Update $update) {
         $message = $update->getMessage();
-        if(!$message->has('document')) {
+        if($message->has('photo')) {
+            $file_id = $message->getPhoto()->last()['file_id'];
+        } elseif($message->has('document')) {
+            $file_id = $message->getDocument()->getFileId();
+        } else {
             return;
         }
         $chat_id = $message->getChat()->getId();
 
         $fileInfo = $this->getFile([
-            'file_id' => $message->getDocument()->getFileId()
+            'file_id' => $file_id
         ]);
         $fileContent = file_get_contents(
             'https://api.telegram.org/file/bot'.$this->getAccessToken().'/'.
@@ -110,9 +114,10 @@ class Api extends \Telegram\Bot\Api
         );
         
         $prefix = substr($fileContent,0,3);
-        if (substr($fileContent,0,3)=="\xff\xd8\xff") {
+        if ($message->has('photo') || substr($fileContent,0,3)=="\xff\xd8\xff") {
             $qrcode = new \QrReader($fileContent, \QrReader::SOURCE_TYPE_BLOB);
-            $this->getCommandBus()->execute('adduri', [$qrcode->text()], $update);
+            $text = $qrcode->text();
+            $this->getCommandBus()->execute('adduri', $text, $update);
         } elseif (substr($fileContent,0,5)=='<?xml') {
             $this->sendMessage([
                 'chat_id' => $chat_id,
