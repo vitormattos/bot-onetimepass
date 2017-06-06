@@ -146,7 +146,7 @@ class Api extends \Telegram\Bot\Api
                                     ' WHERE telegram_id = :telegram_id AND secret = :secret;');
                                 $ok = $sth->execute([
                                     'telegram_id' => $values['telegram_id'],
-                                    'secret' => $value['secret']
+                                    'secret' => $values['secret']
                                 ]);
                                 if ($ok) {
                                     $imported[] = $values['service'];
