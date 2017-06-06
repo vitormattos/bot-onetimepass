@@ -62,25 +62,21 @@ class GetCommand extends Command
         ]);
    }
    
-   public static function getToken($telegram_id, $source)
+   public static function getToken($telegram_id, $secret)
    {
-       $data = explode(':', $source);
-       
-       if ($source) {
+       if ($secret) {
            $db = \Base\DB::getInstance();
            $sth = $db->prepare(
                'SELECT service, label, secret '.
                ' FROM keys '.
                'WHERE telegram_id = :telegram_id '.
-               'AND service = :service '.
-               'AND label = :label '.
+               'AND MD5(secret) = :secret '.
                'AND deleted = false'
            );
 
            $sth->execute([
                'telegram_id' =>$telegram_id,
-               'service' =>$data[0],
-               'label' => $data[1]
+               'secret' => $secret
            ]);
            $row = $sth->fetch();
            $totp = new TOTP(null, $row['secret']);

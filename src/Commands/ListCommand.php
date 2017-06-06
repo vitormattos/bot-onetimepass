@@ -76,7 +76,7 @@ class ListCommand extends Command
            } else {
                $buttons[] = Keyboard::inlineButton([
                    'text' => $row['service'].$label,
-                   'callback_data' => '/get '.$row['service'].($label?':'.$label:'')
+                   'callback_data' => '/get '.md5($row['secret'])
                ]);
            }
            if(count($buttons) == $maxInColumn) {
