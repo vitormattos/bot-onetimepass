@@ -45,10 +45,10 @@ class HelpCommand extends Command
         }
 
         $text = "To create new entry, you has 4 options:\n".
-            Emojify::text(':one:')." - Use the command \importauthy to import a xml of app Authy `com.authy.storage.tokens.authenticator.xml`\n".
-            Emojify::text(':two:')." - Upload directly to the bot a xml of app Authy `com.authy.storage.tokens.authenticator.xml`\n".
+            Emojify::text(':one:')." - Use the command \importauthy to import a xml of app Authy <code>com.authy.storage.tokens.authenticator.xml</code>\n".
+            Emojify::text(':two:')." - Upload directly to the bot a xml of app Authy <code>com.authy.storage.tokens.authenticator.xml</code>\n".
             Emojify::text(':three:')." - Upload directly to the bot a picture with qrcode containing a uri of totp service\n".
-            Emojify::text(':four:')." - Use the command `\adduri <uri>` to input manualy a new entry\n\n";
+            Emojify::text(':four:')." - Use the command <code>\adduri &lt;uri&gt;</code> to input manualy a new entry\n\n";
         foreach ($commands as $name => $handler) {
             if (in_array($name, ['remaining', 'start', 'get'])) {
                 continue;
@@ -56,6 +56,9 @@ class HelpCommand extends Command
             $text .= sprintf('/%s - %s'.PHP_EOL, $name, $handler->getDescription());
         }
 
-        $this->replyWithMessage(compact('text'));
+        $this->replyWithMessage([
+            'text' => $text,
+            'parse_mode' => 'html'
+        ]);
     }
 }

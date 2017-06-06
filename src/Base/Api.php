@@ -101,6 +101,10 @@ class Api extends \Telegram\Bot\Api
         } elseif($message->has('document')) {
             $file_id = $message->getDocument()->getFileId();
         } else {
+            $this->sendMessage([
+                'chat_id' => $chat_id,
+                'text' => 'Invalid file format, accept only picture, jpg or xml file.'
+            ]);
             return;
         }
         $chat_id = $message->getChat()->getId();
