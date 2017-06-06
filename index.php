@@ -37,6 +37,10 @@ $telegram->addCommands([
 ]);
 
 $update = $telegram->getWebhookUpdate();
+if (in_array($update->getMessage()->getFrom()->getId(), explode(',', getenv('BLACKLIST')))) {
+    error_log(file_get_contents('php://input'));
+    return;
+}
 foreach(['CallbackQuery', 'Command', 'Document'] as $method) {
     call_user_func([$telegram, 'process'.$method], $update);
     if($telegram->getLastResponse()) {
