@@ -19,23 +19,21 @@ class Api extends \Telegram\Bot\Api
                 case (preg_match('/^\/get (?<source>.*)/', $query, $matches) ? true : false):
                     $this->getCommandBus()->execute('get', $query, $update);
                     break;
-                case (preg_match('/^\/delete[ ]?(?<source>.*)?/', $query, $matches) ? true : false):
+                case (preg_match('/^\/delete[ ]?(?<secret>.*)?/', $query, $matches) ? true : false):
                     $telegram_id = $callbackQuery->getFrom()->getId();
-                    $data = explode(':', $matches['source']);
-                    if(count($data) == 2) {
+                    if(isset($matches['secret'])) {
                         $db = \Base\DB::getInstance();
                         $sth = $db->prepare(
                             'UPDATE keys '.
                             'SET deleted = true '.
                             'WHERE telegram_id = :telegram_id '.
-                            'AND service = :service '.
-                            'AND label = :label'
+                            'AND MD5SUM(secret) = :secret'
                             );
                         $sth->execute([
                             'telegram_id' => $telegram_id,
-                            'service' => $data[0],
-                            'label' => $data[1]
+                            'secret' => $matches['secret']
                         ]);
+                        $info = $sth->errorInfo();
                         $text = $matches['source'].' deleted with sucess';
                     } else {
                         $text = 'Invalid data to delete';

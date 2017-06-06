@@ -60,7 +60,6 @@ class ListCommand extends Command
        $sth->execute([
            'telegram_id' => $telegram_id
        ]);
-       $info = $sth->errorInfo();
        
        $reply_markup = Keyboard::make();
        $reply_markup->inline();
@@ -72,7 +71,7 @@ class ListCommand extends Command
            if ($delete) {
                $buttons[] = Keyboard::inlineButton([
                    'text' => ($delete?Emojify::text(':no_entry:'):'').$row['service'].$label,
-                   'callback_data' => '/delete '.$row['service'].($label?':'.$label:'')
+                   'callback_data' => '/delete '.md5($row['secret'])
                ]);
            } else {
                $buttons[] = Keyboard::inlineButton([
