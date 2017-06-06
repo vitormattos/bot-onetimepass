@@ -27,7 +27,7 @@ class Api extends \Telegram\Bot\Api
                             'UPDATE keys '.
                             'SET deleted = true '.
                             'WHERE telegram_id = :telegram_id '.
-                            'AND MD5SUM(secret) = :secret'
+                            'AND MD5(secret) = :secret'
                             );
                         $sth->execute([
                             'telegram_id' => $telegram_id,
