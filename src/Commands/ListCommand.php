@@ -68,10 +68,17 @@ class ListCommand extends Command
            $label = $row['label']
                ? "\n".$row['label']
                : '';
-           $buttons[] = Keyboard::inlineButton([
-               'text' => ($delete?Emojify::text(':no_entry:'):'').$row['service'].$label,
-               'callback_data' => '/get '.$row['service'].($label?':'.$label:'')
-           ]);
+           if ($delete) {
+               $buttons[] = Keyboard::inlineButton([
+                   'text' => ($delete?Emojify::text(':no_entry:'):'').$row['service'].$label,
+                   'callback_data' => '/delete '.$row['service'].($label?':'.$label:'')
+               ]);
+           } else {
+               $buttons[] = Keyboard::inlineButton([
+                   'text' => $row['service'].$label,
+                   'callback_data' => '/get '.$row['service'].($label?':'.$label:'')
+               ]);
+           }
            if(count($buttons) == $maxInColumn) {
                $reply_markup->row(...$buttons);
                $buttons = [];
