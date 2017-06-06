@@ -19,6 +19,32 @@ class Api extends \Telegram\Bot\Api
                 case (preg_match('/^\/get (?<source>.*)/', $query, $matches) ? true : false):
                     $this->getCommandBus()->execute('get', $query, $update);
                     break;
+                case (preg_match('/^\/delete[ ]?(?<source>.*)?/', $query, $matches) ? true : false):
+                    $telegram_id = $callbackQuery->getFrom()->getId();
+                    $data = explode(':', $source);
+                    if(count($data) == 2) {
+                        $db = \Base\DB::getInstance();
+                        $sth = $db->prepare(
+                            'UPDATE keys '.
+                            'SET deleted = true '.
+                            'WHERE telegram_id = :telegram_id '.
+                            'AND service = :service '.
+                            'AND label = :label'
+                            );
+                        $sth->execute([
+                            'telegram_id' => $telegram_id,
+                            'service' =>$data[0],
+                            'label' => $data[1]
+                        ]);
+                        $text = 'Deleted with sucess';
+                    } else {
+                        $text = 'Invalid data to delete';
+                    }
+                    $this->sendMessage([
+                        'chat_id' => $telegram_id,
+                        'text' => $text,
+                    ]);
+                    break;
                 case (preg_match('/^\/remaining[ ]?(?<source>.*)?/', $query, $matches) ? true : false):
                     $telegram_id = $callbackQuery->getFrom()->getId();
                     $token = \Commands\GetCommand::getToken($telegram_id, $matches['source']);
@@ -101,7 +127,20 @@ class Api extends \Telegram\Bot\Api
                                 'INSERT INTO keys (telegram_id, service, label, secret) '.
                                 'VALUES (:telegram_id, :service, :label, :secret);'
                             );
-                            if ($sth->execute($values)) {
+
+                            $ok = $sth->execute($values);
+                            if (!$ok) {
+                                $sth = $db->prepare(
+                                    'UPDATE keys SET deleted = false'.
+                                    ' WHERE telegram_id = :telegram_id AND secret = :secret;');
+                                $ok = $sth->execute([
+                                    'telegram_id' => $values['telegram_id'],
+                                    'secret' => $value['secret']
+                                ]);
+                                if ($ok) {
+                                    $imported[] = $values['service'];
+                                }
+                            } else {
                                 $imported[] = $values['service'];
                             }
                         }

@@ -6,7 +6,7 @@ use Telegram\Bot\Commands\Command;
 use Telegram\Bot\Keyboard\Keyboard;
 use OTPHP\TOTP;
 /**
- * Class LoginCommand.
+ * Class GetCommand.
  */
 class GetCommand extends Command
 {

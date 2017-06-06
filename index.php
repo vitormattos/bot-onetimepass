@@ -31,7 +31,8 @@ $telegram->addCommands([
     \Commands\GetCommand::class,
     \Commands\ListCommand::class,
     \Commands\RemainingCommand::class,
-    \Commands\StartCommand::class
+    \Commands\StartCommand::class,
+    \Commands\DeleteCommand::class
 ]);
 
 $update = $telegram->getWebhookUpdate();

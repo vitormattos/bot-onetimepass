@@ -6,7 +6,7 @@ use Telegram\Bot\Commands\Command;
 use Base\DB;
 use Base\Meetup;
 /**
- * Class LogoutCommand.
+ * Class AboutCommand.
  */
 class AboutCommand extends Command
 {

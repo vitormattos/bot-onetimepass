@@ -7,7 +7,7 @@ use Base\UserMeta;
 use Goutte\Client;
 use Telegram\Bot\Keyboard\Keyboard;
 /**
- * Class LoginCommand.
+ * Class ImportAuthyCommand.
  */
 class ImportAuthyCommand extends Command
 {

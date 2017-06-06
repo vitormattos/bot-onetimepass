@@ -3,8 +3,8 @@
 namespace Commands;
 
 use Telegram\Bot\Commands\Command;
-use Aura\SqlQuery\QueryFactory;
 use Telegram\Bot\Keyboard\Keyboard;
+use Telegram\Bot\Helpers\Emojify;
 /**
  * Class LoginCommand.
  */
@@ -25,38 +25,10 @@ class ListCommand extends Command
      */
     public function handle($arguments)
     {
-        $message = $this->update->getMessage();
-        $telegram_id = $message->getFrom()->getId();
+        $telegram_id = $this->update->getMessage()->getFrom()->getId();
 
-        $db = \Base\DB::getInstance();
-        $sth = $db->prepare(
-            'SELECT original, service, label, secret FROM keys WHERE telegram_id = :telegram_id ORDER BY service, label');
-        $sth->execute([
-            'telegram_id' =>$telegram_id
-        ]);
-        
-        $reply_markup = Keyboard::make();
-        $reply_markup->inline();
-        $maxInColumn = 1;
-        $buttons = [];
-        while ($row = $sth->fetch()) {
-            $buttons[] = Keyboard::inlineButton([
-                'text' => $row['service'].
-                    ($row['label']
-                        ?"\n".$row['label']
-                        :''
-                    ),
-                'callback_data' => '/get '.$row['service'].':'.$row['label']
-            ]);
-            if(count($buttons) == $maxInColumn) {
-                call_user_func_array([$reply_markup, 'row'], $buttons);
-                $buttons = [];
-            }
-        }
-        if ($buttons && count($buttons) < $maxInColumn) {
-            call_user_func_array([$reply_markup, 'row'], $buttons);
-        }
-        if ($row) {
+        $reply_markup = self::getListReplyMarkupKeyboard($telegram_id);
+        if ($reply_markup->get('inline_keyboard')) {
             $this->telegram->sendMessage([
                 'chat_id' => $telegram_id,
                 'text' => 'List of totp',
@@ -68,5 +40,46 @@ class ListCommand extends Command
                 'text' => 'You don\'t has any entry, please, first import from Authy xml file or add one by one entry'
             ]);
         }
+   }
+
+   /**
+    * @param int $telegram_id
+    * @param bool $delete
+    * @param int $maxInColumn
+    * @return \Telegram\Bot\Keyboard\Keyboard
+    */
+   public static function getListReplyMarkupKeyboard(int $telegram_id, bool $delete = false, int $maxInColumn = 1)
+   {
+       $db = \Base\DB::getInstance();
+       $sth = $db->prepare(
+           'SELECT original, service, label, secret '.
+           'FROM keys '.
+           'WHERE telegram_id = :telegram_id '.
+           'ORDER BY service, label'
+       );
+       $sth->execute([
+           'telegram_id' => $telegram_id
+       ]);
+       
+       $reply_markup = Keyboard::make();
+       $reply_markup->inline();
+       $buttons = [];
+       while ($row = $sth->fetch()) {
+           $label = $row['label']
+               ? "\n".$row['label']
+               : '';
+           $buttons[] = Keyboard::inlineButton([
+               'text' => ($delete?Emojify::text(':no_entry:'):'').$row['service'].$label,
+               'callback_data' => '/get '.$row['service'].($label?':'.$label:'')
+           ]);
+           if(count($buttons) == $maxInColumn) {
+               $reply_markup->row(...$buttons);
+               $buttons = [];
+           }
+       }
+       if ($buttons && count($buttons) < $maxInColumn) {
+           $reply_markup->row(...$buttons);
+       }
+       return $reply_markup;
    }
 }

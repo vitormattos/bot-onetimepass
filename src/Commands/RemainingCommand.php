@@ -9,7 +9,7 @@ use Aura\SqlQuery\QueryFactory;
 use Telegram\Bot\Keyboard\Keyboard;
 use OTPHP\TOTP;
 /**
- * Class LoginCommand.
+ * Class RemainingCommand.
  */
 class RemainingCommand extends Command
 {

@@ -31,6 +31,13 @@ class HelpCommand extends Command
     public function handle($arguments)
     {
         $commands = $this->telegram->getCommands();
+
+        $telegram_id = $this->update->getMessage()->getFrom()->getId();
+        $reply_markup= ListCommand::getListReplyMarkupKeyboard($telegram_id);
+        if (!$reply_markup->get('inline_keyboard')) {
+            unset($commands['delete'], $commands['list']);
+        }
+
         $text = '';
         foreach ($commands as $name => $handler) {
             if (in_array($name, ['remaining', 'start', 'get'])) {
