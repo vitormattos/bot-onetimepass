@@ -4,6 +4,7 @@ namespace Base;
 use Telegram\Bot\Keyboard\Keyboard;
 use Symfony\Component\Config\Util\XmlUtils;
 use Telegram\Bot\Exceptions\TelegramSDKException;
+use Commands\ImportAuthyCommand;
 
 class Api extends \Telegram\Bot\Api
 {
@@ -98,88 +99,42 @@ class Api extends \Telegram\Bot\Api
         if(!$message->has('document')) {
             return;
         }
-        if($message->has('reply_to_message')) {
-            $text = $message->getReplyToMessage()->getText();
-            $bot_id = $message->getReplyToMessage()->getFrom()->getId();
-            
-            if (getenv('BOT_USERNAME') != $message->getReplyToMessage()->getFrom()->getUsername()) {
+        $chat_id = $message->getChat()->getId();
+
+        $fileInfo = $this->getFile([
+            'file_id' => $message->getDocument()->getFileId()
+        ]);
+        $fileContent = file_get_contents(
+            'https://api.telegram.org/file/bot'.$this->getAccessToken().'/'.
+            $fileInfo->getFilePath()
+        );
+        
+        $prefix = substr($fileContent,0,3);
+        if (substr($fileContent,0,3)=="\xff\xd8\xff") {
+            $qrcode = new \QrReader($fileContent, \QrReader::SOURCE_TYPE_BLOB);
+            $this->getCommandBus()->execute('adduri', [$qrcode->text()], $update);
+        } elseif (substr($fileContent,0,5)=='<?xml') {
+            $this->sendMessage([
+                'chat_id' => $chat_id,
+                'text' => 'Wait the end of import process'
+            ]);
+            try {
                 $this->sendMessage([
-                    'chat_id' => $message->getChat()->getId(),
-                    'text' => 'Only send authy file in response to next message:'
+                    'chat_id' => $chat_id,
+                    'text' => ImportAuthyCommand::importDocument(
+                        $fileContent,
+                        $message->getFrom()->getId()
+                    )
+                ]);
+                return;
+            } catch (\Exception | TelegramSDKException $e) {
+                $this->sendMessage([
+                    'chat_id' => $chat_id,
+                    'text' => 'An error has occurred, please try again'
                 ]);
                 $this->getCommandBus()->execute('importauthy', [], $update);
                 return;
             }
-            switch ($text) {
-                case (preg_match('/authy/', $text) ? true : false):
-                    $file = $this->getFile([
-                        'file_id' => $message->getDocument()->getFileId()
-                    ]);
-                    $url = 'https://api.telegram.org/file/bot'.$this->getAccessToken().'/'.$file->getFilePath();
-                    $this->sendMessage([
-                        'chat_id' => $message->getChat()->getId(),
-                        'text' => 'Wait the end of import process'
-                    ]);
-                    try {
-                        $document = XmlUtils::loadFile($url);
-                        $json = $document->getElementsByTagName('string')->item(0)->nodeValue;
-                        $json = json_decode($json);
-                        
-                        $db = \Base\DB::getInstance();
-                        $telegram_id = $message->getFrom()->getId();
-                        $values['telegram_id'] = $telegram_id;
-                        $imported = [];
-                        foreach ($json as $source) {
-                            $tmp = explode(':', $source->originalName);
-                            $values['service'] = $tmp[0];
-                            $values['label'] = $tmp[1];
-                            $values['secret'] = $source->decryptedSecret;
-                            $sth = $db->prepare(
-                                'INSERT INTO keys (telegram_id, service, label, secret) '.
-                                'VALUES (:telegram_id, :service, :label, :secret);'
-                            );
-
-                            $ok = $sth->execute($values);
-                            if (!$ok) {
-                                $sth = $db->prepare(
-                                    'UPDATE keys SET deleted = false'.
-                                    ' WHERE telegram_id = :telegram_id AND secret = :secret;');
-                                $ok = $sth->execute([
-                                    'telegram_id' => $values['telegram_id'],
-                                    'secret' => $values['secret']
-                                ]);
-                                if ($ok) {
-                                    $imported[] = $values['service'];
-                                }
-                            } else {
-                                $imported[] = $values['service'];
-                            }
-                        }
-                        if ($imported) {
-                            $text = "Imported:\n".implode(", ", $imported);
-                        } else {
-                            $text = 'No data imported';
-                        }
-                        $this->sendMessage([
-                            'chat_id' => $message->getChat()->getId(),
-                            'text' => $text
-                        ]);
-                        return;
-                    } catch (\Exception | TelegramSDKException $e) {
-                        $this->sendMessage([
-                            'chat_id' => $message->getChat()->getId(),
-                            'text' => 'An error has occurred, please try again'
-                        ]);
-                        $this->getCommandBus()->execute('importauthy', [], $update);
-                        return;
-                    }
-                    break;
-            }
         }
-        $this->sendMessage([
-            'chat_id' => $message->getChat()->getId(),
-            'text' => 'Invalid authy file, try again'
-        ]);
-        $this->getCommandBus()->execute('importauthy', [], $update);
     }
 }

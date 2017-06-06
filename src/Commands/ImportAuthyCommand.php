@@ -6,6 +6,7 @@ use Telegram\Bot\Commands\Command;
 use Base\UserMeta;
 use Goutte\Client;
 use Telegram\Bot\Keyboard\Keyboard;
+use Symfony\Component\Config\Util\XmlUtils;
 /**
  * Class ImportAuthyCommand.
  */
@@ -38,6 +39,54 @@ class ImportAuthyCommand extends Command
             'text' => 'Upload the xml file of authy app and send to import',
             'reply_markup' => $reply_markup
         ]);
+    }
+    /**
+     * @param string $source
+     * @param int $telegram_id
+     * @return string
+     */
+    public static function importDocument(string $source, int $telegram_id)
+    {
+        $dom = new \DOMDocument();
+        $dom->loadXML($source);
+        $json = $dom->getElementsByTagName('string')->item(0)->nodeValue;
+        $json = json_decode($json);
+        if (!$json) {
+            return 'Invalid file content. Please, send a xml from Authy';
+        }
         
-   }
+        $db = \Base\DB::getInstance();
+        $values['telegram_id'] = $telegram_id;
+        $imported = [];
+        foreach ($json as $source) {
+            $tmp = explode(':', $source->originalName);
+            $values['service'] = $tmp[0];
+            $values['label'] = $tmp[1];
+            $values['secret'] = $source->decryptedSecret;
+            $sth = $db->prepare(
+                'INSERT INTO keys (telegram_id, service, label, secret) '.
+                'VALUES (:telegram_id, :service, :label, :secret);'
+                );
+            
+            $ok = $sth->execute($values);
+            if (!$ok) {
+                $sth = $db->prepare(
+                    'UPDATE keys SET deleted = false'.
+                    ' WHERE telegram_id = :telegram_id AND secret = :secret;');
+                $ok = $sth->execute([
+                    'telegram_id' => $values['telegram_id'],
+                    'secret' => $values['secret']
+                ]);
+                if ($ok) {
+                    $imported[] = $values['service'];
+                }
+            } else {
+                $imported[] = $values['service'];
+            }
+        }
+        if ($imported) {
+            return "Imported:\n".implode(", ", $imported);
+        }
+        return 'No data imported';
+    }
 }

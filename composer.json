@@ -5,7 +5,8 @@
 		"vlucas/phpdotenv" : "^2.4",
 		"robmorgan/phinx" : "^0.8.0",
 		"irazasyed/telegram-bot-sdk" : "dev-master",
-		"aura/sql" : "^2.5"
+		"aura/sql" : "^2.5",
+		"khanamiryan/qrcode-detector-decoder": "^1.0"
 	},
 	"autoload" : {
 		"psr-4" : {
