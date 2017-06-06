@@ -54,7 +54,7 @@ class ListCommand extends Command
        $sth = $db->prepare(
            'SELECT original, service, label, secret '.
            'FROM keys '.
-           'WHERE telegram_id = :telegram_id '.
+           'WHERE telegram_id = :telegram_id AND deleted = false'.
            'ORDER BY service, label'
        );
        $sth->execute([

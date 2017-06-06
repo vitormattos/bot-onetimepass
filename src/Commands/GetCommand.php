@@ -59,8 +59,14 @@ class GetCommand extends Command
        if ($source) {
            $db = \Base\DB::getInstance();
            $sth = $db->prepare(
-               'SELECT secret FROM keys WHERE telegram_id = :telegram_id AND service = :service AND label = :label');
-           
+               'SELECT secret '.
+               ' FROM keys '.
+               'WHERE telegram_id = :telegram_id '.
+               'AND service = :service '.
+               'AND label = :label '.
+               'AND deleted = false'
+           );
+
            $sth->execute([
                'telegram_id' =>$telegram_id,
                'service' =>$data[0],
