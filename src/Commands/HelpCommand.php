@@ -31,6 +31,11 @@ class HelpCommand extends Command
     public function handle($arguments)
     {
         $commands = $this->telegram->getCommands();
+        $text = $this->getUpdate()->getMessage()->getText();
+        $matches = $this->getCommandBus()->parseCommand($text);
+        if (!array_key_exists($matches[1], $commands)) {
+            return;
+        }
 
         $telegram_id = $this->update->getMessage()->getFrom()->getId();
         $reply_markup= ListCommand::getListReplyMarkupKeyboard($telegram_id);
