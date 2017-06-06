@@ -24,8 +24,8 @@ class Api extends \Telegram\Bot\Api
                     if(isset($matches['secret'])) {
                         $db = \Base\DB::getInstance();
                         $sth = $db->prepare(
-                            'UPDATE keys '.
-                            'SET deleted = true '.
+                            'SELECT source '.
+                            'FROM keys '.
                             'WHERE telegram_id = :telegram_id '.
                             'AND MD5(secret) = :secret'
                             );
@@ -33,8 +33,21 @@ class Api extends \Telegram\Bot\Api
                             'telegram_id' => $telegram_id,
                             'secret' => $matches['secret']
                         ]);
-                        $info = $sth->errorInfo();
-                        $text = $matches['source'].' deleted with sucess';
+                        if ($row = $sth->fetch()) {
+                            $sth = $db->prepare(
+                                'UPDATE keys '.
+                                'SET deleted = true '.
+                                'WHERE telegram_id = :telegram_id '.
+                                'AND MD5(secret) = :secret'
+                                );
+                            $sth->execute([
+                                'telegram_id' => $telegram_id,
+                                'secret' => $row['secret']
+                            ]);
+                            $text = $matches['source'].' deleted with sucess';
+                        } else {
+                            $text = 'Entry not found';
+                        }
                     } else {
                         $text = 'Invalid data to delete';
                     }
