@@ -36,6 +36,7 @@ $telegram->addCommands([
     \Commands\DeleteCommand::class
 ]);
 
+$update = $telegram->getWebhookUpdate();
 if ($update->has('channel_post') ||
     ($update->has('message') && in_array($update->getMessage()->getFrom()->getId(), explode(',', getenv('BLACKLIST'))))
     ) {
