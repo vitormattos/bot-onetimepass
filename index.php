@@ -11,7 +11,8 @@ if(file_exists('.env')) {
 if(getenv('MOCK_JSON')) {
     class mockApi extends Api{
         public function getWebhookUpdate($shouldEmitEvent = true) {
-            return new Update(json_decode(getenv('MOCK_JSON'), true));
+            $content = trim(getenv('MOCK_JSON'), "'");
+            return new Update(json_decode($content, true));
         }
     }
     $telegram = new mockApi();

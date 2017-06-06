@@ -21,7 +21,7 @@ class Api extends \Telegram\Bot\Api
                     break;
                 case (preg_match('/^\/delete[ ]?(?<source>.*)?/', $query, $matches) ? true : false):
                     $telegram_id = $callbackQuery->getFrom()->getId();
-                    $data = explode(':', $source);
+                    $data = explode(':', $matches['source']);
                     if(count($data) == 2) {
                         $db = \Base\DB::getInstance();
                         $sth = $db->prepare(
@@ -33,10 +33,10 @@ class Api extends \Telegram\Bot\Api
                             );
                         $sth->execute([
                             'telegram_id' => $telegram_id,
-                            'service' =>$data[0],
+                            'service' => $data[0],
                             'label' => $data[1]
                         ]);
-                        $text = 'Deleted with sucess';
+                        $text = $matches['source'].' deleted with sucess';
                     } else {
                         $text = 'Invalid data to delete';
                     }
