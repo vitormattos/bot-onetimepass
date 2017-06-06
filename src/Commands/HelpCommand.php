@@ -48,7 +48,9 @@ class HelpCommand extends Command
             Emojify::text(':one:')." - Use the command /importauthy to import a xml of app Authy <code>com.authy.storage.tokens.authenticator.xml</code>\n".
             Emojify::text(':two:')." - Upload directly to the bot a xml of app Authy <code>com.authy.storage.tokens.authenticator.xml</code>\n".
             Emojify::text(':three:')." - Upload directly to the bot a picture with qrcode containing a uri of totp service\n".
-            Emojify::text(':four:')." - Use the command \n<code>/adduri &lt;uri&gt;</code>\nto input manualy a new entry\n\n";
+            Emojify::text(':four:')." - Use the command \n<code>/adduri &lt;uri&gt;</code>\nto input manualy a new entry\n".
+            "\n".
+            "If you has many entry, send message to search, if exist entry will return the list\n\n";
         foreach ($commands as $name => $handler) {
             if (in_array($name, ['remaining', 'start', 'get'])) {
                 continue;
