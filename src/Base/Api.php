@@ -26,7 +26,7 @@ class Api extends \Telegram\Bot\Api
                     if(isset($matches['secret'])) {
                         $db = \Base\DB::getInstance();
                         $sth = $db->prepare(
-                            'SELECT source '.
+                            'SELECT service, label, secret '.
                             'FROM keys '.
                             'WHERE telegram_id = :telegram_id '.
                             'AND MD5(secret) = :secret'
@@ -46,7 +46,12 @@ class Api extends \Telegram\Bot\Api
                                 'telegram_id' => $telegram_id,
                                 'secret' => $row['secret']
                             ]);
-                            $text = $matches['source'].' deleted with sucess';
+                            $text = $row['service'].
+                                ($row['label']
+                                    ?':'.$row['label']
+                                    :''
+                                ).
+                                ' deleted with sucess';
                         } else {
                             $text = 'Entry not found';
                         }
