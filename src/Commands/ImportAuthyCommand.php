@@ -59,9 +59,22 @@ class ImportAuthyCommand extends Command
         $values['telegram_id'] = $telegram_id;
         $imported = [];
         foreach ($json as $source) {
-            $tmp = explode(':', $source->originalName);
-            $values['service'] = $tmp[0];
-            $values['label'] = isset($tmp[1])?$tmp[1]:'';
+            if (strpos(':', $source->name)) {
+                $tmp = explode(':', $source->name);
+                $service = $tmp[0];
+                $label = $tmp[1];
+            } else {
+                if ($source->accountType != 'authenticator') {
+                    $service = $source->accountType;
+                } elseif ($source->originalName != 'screenconnect') {
+                    $service = $source->originalName;
+                } else {
+                    $service = $source->name;
+                }
+                $label = $source->name;
+            }
+            $values['service'] = $service;
+            $values['label'] = $label;
             $values['secret'] = $source->decryptedSecret;
             $sth = $db->prepare(
                 'INSERT INTO keys (telegram_id, service, label, secret) '.
