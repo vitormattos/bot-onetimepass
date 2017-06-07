@@ -73,8 +73,8 @@ class ImportAuthyCommand extends Command
                 }
                 $label = $source->name;
             }
-            $values['service'] = $service;
-            $values['label'] = $label;
+            $values['service'] = trim($service);
+            $values['label'] = trim($label);
             $values['secret'] = $source->decryptedSecret;
             $sth = $db->prepare(
                 'INSERT INTO keys (telegram_id, service, label, secret) '.

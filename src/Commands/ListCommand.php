@@ -69,7 +69,7 @@ class ListCommand extends Command
        $reply_markup->inline();
        $buttons = [];
        while ($row = $sth->fetch()) {
-           if (strpos(':', $row['label'])) {
+           if (preg_match('/:/', $row['label'])) {
                $text = str_replace(':', "\n", $row['label']);
            } else {
                $text = $row['service']."\n".$row['label'];
