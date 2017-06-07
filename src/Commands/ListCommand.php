@@ -52,10 +52,13 @@ class ListCommand extends Command
    {
        $db = \Base\DB::getInstance();
        $sth = $db->prepare(
-           'SELECT original, service, label, secret '.
+           'SELECT original, service, label, secret, '.
+           'CASE WHEN telegram_id <> :telegram_id THEN telegram_id END AS shared '.
            'FROM keys '.
-           'WHERE telegram_id = :telegram_id AND deleted = false '.
-           'ORDER BY service, label'
+           'LEFT JOIN share ON share.to = keys.telegram_id '.
+           'WHERE (telegram_id = :telegram_id OR share.to = :telegram_id)'.
+           'AND deleted = false '.
+           'ORDER BY shared, service, label'
        );
        $ok = $sth->execute([
            'telegram_id' => $telegram_id
@@ -68,7 +71,16 @@ class ListCommand extends Command
        $reply_markup = Keyboard::make();
        $reply_markup->inline();
        $buttons = [];
+       $last_shared = null;
        while ($row = $sth->fetch()) {
+           if ($row['shared']) {
+               if (!$last_shared || $last_shared != $row['shared']) {
+                   $last_shared = $row['shared'];
+                   $reply_markup->row([Keyboard::inlineButton([
+                       'text' => Emojify::text(':no_entry:').$text
+                   ])]);
+               }
+           }
            if (preg_match('/:/', $row['label'])) {
                $text = str_replace(':', "\n", $row['label']);
            } else {

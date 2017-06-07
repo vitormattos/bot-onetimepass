@@ -186,4 +186,13 @@ class Api extends \Telegram\Bot\Api
             }
         }
     }
+    
+    public function processContact(\Telegram\Bot\Objects\Update $update)
+    {
+        $message = $update->getMessage();
+        if(!$message->has('contact')) {
+            return;
+        }
+        $contact = $message->getContact();
+    }
 }

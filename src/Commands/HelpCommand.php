@@ -41,7 +41,7 @@ class HelpCommand extends Command
         $telegram_id = $this->update->getMessage()->getFrom()->getId();
         $reply_markup= ListCommand::getListReplyMarkupKeyboard($telegram_id);
         if (!$reply_markup->get('inline_keyboard')) {
-            unset($commands['delete'], $commands['list']);
+            unset($commands['delete'], $commands['list'], $commands['share']);
         }
 
         $text = "To create new entry, you has 4 options:\n".

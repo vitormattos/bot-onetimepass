@@ -33,7 +33,8 @@ $telegram->addCommands([
     \Commands\ListCommand::class,
     \Commands\RemainingCommand::class,
     \Commands\StartCommand::class,
-    \Commands\DeleteCommand::class
+    \Commands\DeleteCommand::class,
+    \Commands\ShareCommand::class
 ]);
 
 $update = $telegram->getWebhookUpdate();
@@ -44,7 +45,7 @@ if ($update->has('channel_post') ||
     error_log(file_get_contents('php://input'));
     return;
 }
-foreach(['CallbackQuery', 'Command', 'Document', 'Message'] as $method) {
+foreach(['CallbackQuery', 'Command', 'Document', 'Contact', 'Message'] as $method) {
     call_user_func([$telegram, 'process'.$method], $update);
     if($telegram->getLastResponse()) {
         break;
