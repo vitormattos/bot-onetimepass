@@ -69,17 +69,19 @@ class ListCommand extends Command
        $reply_markup->inline();
        $buttons = [];
        while ($row = $sth->fetch()) {
-           $label = $row['label']
-           ? "\n".$row['label']
-           : '';
+           if (strpos(':', $row['label'])) {
+               $text = str_replace(':', "\n", $row['label']);
+           } else {
+               $text = $row['service']."\n".$row['label'];
+           }
            if ($delete) {
                $buttons[] = Keyboard::inlineButton([
-                   'text' => ($delete?Emojify::text(':no_entry:'):'').$row['service'].$label,
+                   'text' => Emojify::text(':no_entry:').$text,
                    'callback_data' => '/delete '.md5($row['secret'])
                ]);
            } else {
                $buttons[] = Keyboard::inlineButton([
-                   'text' => $row['service'].$label,
+                   'text' => $text,
                    'callback_data' => '/get '.md5($row['secret'])
                ]);
            }
