@@ -1,6 +1,7 @@
 {
 	"require" : {
 		"php" : ">=7",
+        "ext-gd" : "*",
 		"spomky-labs/otphp" : "^8.3",
 		"vlucas/phpdotenv" : "^2.4",
 		"robmorgan/phinx" : "^0.8.0",
